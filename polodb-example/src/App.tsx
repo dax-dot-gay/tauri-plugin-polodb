@@ -46,6 +46,12 @@ function App() {
       </form>
 
       <p>{greetMsg}</p>
+
+      <button
+        onClick={() => invoke("plugin:polodb|list_databases").then(console.log)}
+      >
+        TEST
+      </button>
     </div>
   );
 }
