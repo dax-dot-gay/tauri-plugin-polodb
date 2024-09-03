@@ -7,6 +7,10 @@ use tauri::{
 mod desktop;
 
 mod commands;
+mod daemon;
+mod error;
+
+pub use error::Error;
 
 #[cfg(desktop)]
 use desktop::Polodb;
