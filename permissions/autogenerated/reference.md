@@ -16,6 +16,32 @@ Default permissions for the plugin
 <tr>
 <td>
 
+`polodb:allow-close-database`
+
+</td>
+<td>
+
+Enables the close-database command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`polodb:deny-close-database`
+
+</td>
+<td>
+
+Denies the close-database command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `polodb:allow-list-databases`
 
 </td>
@@ -35,6 +61,32 @@ Enables the list-databases command without any pre-configured scope.
 <td>
 
 Denies the list-databases command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`polodb:allow-open-database`
+
+</td>
+<td>
+
+Enables the open-database command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`polodb:deny-open-database`
+
+</td>
+<td>
+
+Denies the open-database command without any pre-configured scope.
 
 </td>
 </tr>

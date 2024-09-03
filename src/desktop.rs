@@ -23,4 +23,16 @@ impl<R: Runtime> Polodb<R> {
     pub async fn call<T: Serialize + DeserializeOwned>(&self, command: PoloCommand) -> Result<T, crate::Error> {
         self.api.call::<T>(command).await
     }
+
+    pub async fn open_database<T: AsRef<str>, P: AsRef<str>>(&self, key: T, path: P) -> Result<String, crate::Error> {
+        self.api.call::<String>(PoloCommand::OpenDatabase { key: key.as_ref().to_string(), path: path.as_ref().to_string() }).await
+    }
+
+    pub async fn close_database<T: AsRef<str>>(&self, key: T) -> Result<String, crate::Error> {
+        self.api.call::<String>(PoloCommand::CloseDatabase(key.as_ref().to_string())).await
+    }
+
+    pub async fn list_databases(&self) -> Result<Vec<String>, crate::Error> {
+        self.api.call::<Vec<String>>(PoloCommand::ListDatabases).await
+    }
 }

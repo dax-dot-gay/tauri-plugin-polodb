@@ -1,9 +1,0 @@
-[[permission]]
-identifier = "allow-list-databases"
-description = "Enables the list_databases command."
-commands.allow = ["list_databases"]
-
-[[permission]]
-identifier = "deny-list-databases"
-description = "Denies the list_databases command."
-commands.deny = ["list_databases"]
