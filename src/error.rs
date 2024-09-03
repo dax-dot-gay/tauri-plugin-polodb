@@ -6,5 +6,6 @@ pub enum Error {
     UnknownDatabase(String),
     Io(String),
     ExistingDatabase(String),
-    DatabaseError(String)
+    DatabaseError(String),
+    DaemonError(String)
 }
