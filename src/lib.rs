@@ -3,16 +3,10 @@ use tauri::{
   Manager, Runtime,
 };
 
-pub use models::*;
-
 #[cfg(desktop)]
 mod desktop;
 
 mod commands;
-mod error;
-mod models;
-
-pub use error::{Error, Result};
 
 #[cfg(desktop)]
 use desktop::Polodb;
@@ -31,10 +25,10 @@ impl<R: Runtime, T: Manager<R>> crate::PolodbExt<R> for T {
 /// Initializes the plugin.
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
   Builder::new("polodb")
-    .invoke_handler(tauri::generate_handler![commands::ping])
+    .invoke_handler(tauri::generate_handler![])
     .setup(|app, api| {
       #[cfg(desktop)]
-      let polodb = desktop::init(app, api)?;
+      let polodb = desktop::init(app, api).unwrap();
       app.manage(polodb);
       Ok(())
     })
