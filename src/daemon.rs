@@ -1,4 +1,8 @@
-use std::{collections::HashMap, path::Path, sync::{Arc, Mutex, MutexGuard}};
+use std::{
+    collections::HashMap,
+    path::Path,
+    sync::{Arc, Mutex, MutexGuard},
+};
 
 use polodb_core::{Collection, Database};
 use serde::{Deserialize, Serialize};
@@ -6,29 +10,35 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SerializedDatabase {
     pub key: String,
-    pub file: String
+    pub file: String,
 }
 
 pub struct PoloDatabase {
     pub key: String,
     pub database: Database,
-    pub file: String
+    pub file: String,
 }
 
 impl PoloDatabase {
     pub fn deserialize(serialized: SerializedDatabase) -> Result<Self, crate::Error> {
-        let db = Database::open_path(Path::new(serialized.file.as_str())).or_else(|e| Err(crate::Error::Io(format!("Failed to open {:?}: {:?}", serialized.file.as_str(), e))))?;
+        let db = Database::open_path(Path::new(serialized.file.as_str())).or_else(|e| {
+            Err(crate::Error::Io(format!(
+                "Failed to open {:?}: {:?}",
+                serialized.file.as_str(),
+                e
+            )))
+        })?;
         Ok(PoloDatabase {
             key: serialized.key,
             database: db,
-            file: serialized.file
+            file: serialized.file,
         })
     }
 
     pub fn serialize(&self) -> SerializedDatabase {
         SerializedDatabase {
             key: self.key.clone(),
-            file: self.file.clone()
+            file: self.file.clone(),
         }
     }
 
@@ -37,149 +47,205 @@ impl PoloDatabase {
     }
 
     pub fn collections(&self) -> Result<Vec<String>, crate::Error> {
-        self.database.list_collection_names().or(Err(crate::Error::DatabaseError("Failed to list collections".to_string())))
+        self.database
+            .list_collection_names()
+            .or(Err(crate::Error::DatabaseError(
+                "Failed to list collections".to_string(),
+            )))
     }
 }
 
 pub mod messages {
-    use std::{sync::{Arc, Mutex}, thread::{spawn, JoinHandle}};
+    use std::{
+        path::Path,
+        sync::{Arc, Mutex},
+        thread::{spawn, JoinHandle},
+    };
 
     use async_channel::{unbounded, Receiver, Sender};
-    use serde::{Deserialize, Serialize};
+    use serde::{de::DeserializeOwned, Deserialize, Serialize};
+    use serde_json::Value;
     use uuid::Uuid;
 
-    #[derive(Clone, Debug, Serialize, Deserialize)]
+    use super::PoloDaemon;
+
+    #[derive(Serialize, Deserialize, Clone, Debug)]
     pub enum PoloCommand {
-        Kill
+        Kill,
+        OpenDatabase { key: String, path: String },
+        CloseDatabase(String),
+        ListDatabases,
     }
-
-    #[derive(Clone, Debug, Serialize, Deserialize)]
-    pub enum PoloReturn {
-        UnknownCommand,
-        Error(crate::Error)
-    }
-
-    #[derive(Clone, Debug, Serialize, Deserialize)]
-    pub enum PoloMessageContent {
-        Command(PoloCommand),
-        Return(PoloReturn)
-    }
-
 
     #[derive(Clone, Debug)]
+    #[allow(dead_code)]
     pub struct PoloMessage {
         id: Uuid,
-        content: PoloMessageContent,
-        return_pipe: Sender<PoloMessage>
+        content: PoloCommand,
+        return_pipe: Sender<Result<Value, crate::Error>>,
+    }
+
+    impl PoloMessage {
+        pub fn respond<T: Serialize>(&self, data: Result<T, crate::Error>) -> () {
+            let _ = self.return_pipe.send_blocking(data.and_then(|d| {
+                serde_json::to_value(d).or(Err(crate::Error::SerializationError(
+                    "Response serialization failure".to_string(),
+                )))
+            }));
+        }
     }
 
     #[derive(Clone, Debug)]
     pub struct PoloManager {
         handle: Arc<Mutex<JoinHandle<()>>>,
-        tx: Sender<PoloMessage>
+        tx: Sender<PoloMessage>,
     }
 
     impl PoloManager {
         fn daemon(rx: Receiver<PoloMessage>) -> () {
+            #[allow(unused_variables, unused_mut)]
+            let mut daemon = PoloDaemon::new();
             loop {
                 if let Ok(msg) = rx.recv_blocking() {
-                    if let PoloMessageContent::Command(command) = msg.content {
-                        #[allow(unreachable_patterns)]
-                        let result = match command {
-                            PoloCommand::Kill => break,
-                            _ => PoloReturn::UnknownCommand
-                        };
-
-                        let _ = msg.return_pipe.send(PoloMessage {id: msg.id, content: PoloMessageContent::Return(result), return_pipe: msg.return_pipe.clone()});
-                    }
+                    let command = msg.clone().content;
+                    #[allow(unreachable_patterns)]
+                    match command {
+                        PoloCommand::Kill => break,
+                        PoloCommand::OpenDatabase { key, path } => {
+                            msg.respond(match daemon.open(key, Path::new(path.as_str())) {
+                                Ok(_) => Ok("Database opened.".to_string()),
+                                Err(e) => Err(e),
+                            })
+                        }
+                        PoloCommand::CloseDatabase(key) => {
+                            msg.respond(match daemon.close(key) {
+                                Ok(_) => Ok("Database closed.".to_string()),
+                                Err(e) => Err(e),
+                            })
+                        }
+                        PoloCommand::ListDatabases => msg.respond(Ok(daemon.list().clone())),
+                        _ => msg.respond::<()>(Err(crate::Error::DaemonError(
+                            "Unknown command".to_string(),
+                        ))),
+                    };
                 }
             }
         }
 
         pub fn new() -> Self {
             let (tx, rx) = unbounded::<PoloMessage>();
-            let handle = spawn(move || {
-                PoloManager::daemon(rx)
-            });
+            let handle = spawn(move || PoloManager::daemon(rx));
             PoloManager {
                 handle: Arc::new(Mutex::new(handle)),
-                tx: tx.clone()
+                tx: tx.clone(),
             }
         }
 
-        pub async fn call(&self, command: PoloCommand) -> Result<PoloReturn, crate::Error> {
-            let (tx, rx) = unbounded::<PoloMessage>();
+        pub async fn call<T: Serialize + DeserializeOwned>(&self, command: PoloCommand) -> Result<T, crate::Error> {
+            let (tx, rx) = unbounded::<Result<Value, crate::Error>>();
             let id = Uuid::new_v4();
             let message = PoloMessage {
                 id: id.clone(),
-                content: PoloMessageContent::Command(command.clone()),
-                return_pipe: tx.clone()
+                content: command.clone(),
+                return_pipe: tx.clone(),
             };
-            self.tx.send(message.clone()).await.or(Err(crate::Error::DaemonError("Channel send failure".to_string())))?;
+            self.tx
+                .send(message.clone())
+                .await
+                .or(Err(crate::Error::DaemonError(
+                    "Channel send failure".to_string(),
+                )))?;
             match rx.recv().await {
-                Ok(result) => match result.content {
-                    PoloMessageContent::Command(_) => Err(crate::Error::DaemonError("Critical recv error: command in return channel.".to_string())),
-                    PoloMessageContent::Return(r) => Ok(r)
+                Ok(result) => match result {
+                    Ok(v) => serde_json::from_value::<T>(v).or(Err(crate::Error::SerializationError("Failed to deserialize reponse value".to_string()))),
+                    Err(e) => Err(e)
                 },
-                Err(_) => Err(crate::Error::DaemonError("Failed to recv daemon response".to_string()))
+                Err(_) => Err(crate::Error::DaemonError(
+                    "Failed to recv daemon response".to_string(),
+                )),
             }
         }
 
         pub async fn call_nowait(&self, command: PoloCommand) -> Result<(), crate::Error> {
-            let (tx, _) = unbounded::<PoloMessage>();
+            let (tx, _) = unbounded::<Result<Value, crate::Error>>();
             let id = Uuid::new_v4();
             let message = PoloMessage {
                 id: id.clone(),
-                content: PoloMessageContent::Command(command.clone()),
-                return_pipe: tx.clone()
+                content: command.clone(),
+                return_pipe: tx.clone(),
             };
-            self.tx.send(message.clone()).await.or(Err(crate::Error::DaemonError("Channel send failure".to_string())))?;
+            self.tx
+                .send(message.clone())
+                .await
+                .or(Err(crate::Error::DaemonError(
+                    "Channel send failure".to_string(),
+                )))?;
             Ok(())
         }
 
         pub async fn kill(&self) -> Result<(), crate::Error> {
             self.call_nowait(PoloCommand::Kill).await?;
-            self.handle.lock().or(Err(crate::Error::DaemonError("Handle lock failed".to_string()))).and(Ok(()))
+            self.handle
+                .lock()
+                .or(Err(crate::Error::DaemonError(
+                    "Handle lock failed".to_string(),
+                )))
+                .and(Ok(()))
         }
     }
 }
 
 pub struct PoloDaemon {
-    pub databases: HashMap<String, Arc<Mutex<PoloDatabase>>>
+    pub databases: HashMap<String, Arc<Mutex<PoloDatabase>>>,
 }
 
 impl PoloDaemon {
     pub fn new() -> Self {
         PoloDaemon {
-            databases: HashMap::new()
+            databases: HashMap::new(),
         }
     }
 
     pub fn get<K: AsRef<str>>(&self, key: K) -> Result<MutexGuard<'_, PoloDatabase>, crate::Error> {
         match self.databases.get(key.as_ref()) {
-            Some(arc) => arc.lock().or(Err(crate::Error::Sync("daemon.get".to_string()))),
-            None => Err(crate::Error::UnknownDatabase(key.as_ref().to_string()))
+            Some(arc) => arc
+                .lock()
+                .or(Err(crate::Error::Sync("daemon.get".to_string()))),
+            None => Err(crate::Error::UnknownDatabase(key.as_ref().to_string())),
         }
     }
 
-    pub fn open<K: AsRef<str>, F: AsRef<Path>>(&mut self, key: K, path: F) -> Result<(), crate::Error> {
+    pub fn open<K: AsRef<str>, F: AsRef<Path>>(
+        &mut self,
+        key: K,
+        path: F,
+    ) -> Result<(), crate::Error> {
         if self.databases.contains_key(key.as_ref()) {
             return Err(crate::Error::ExistingDatabase(key.as_ref().to_string()));
         }
         let path_string = path.as_ref().to_str().unwrap().to_string();
-        let db = Database::open_path(path.as_ref()).or_else(|e| Err(crate::Error::Io(format!("Failed to open {:?}: {:?}", path_string.clone(), e))))?;
-        self.databases.insert(key.as_ref().to_string(), Arc::new(Mutex::new(PoloDatabase {
-            key: key.as_ref().to_string(),
-            database: db,
-            file: path_string.clone()
-        })));
+        let db = Database::open_path(path.as_ref()).or_else(|e| {
+            Err(crate::Error::Io(format!(
+                "Failed to open {:?}: {:?}",
+                path_string.clone(),
+                e
+            )))
+        })?;
+        self.databases.insert(
+            key.as_ref().to_string(),
+            Arc::new(Mutex::new(PoloDatabase {
+                key: key.as_ref().to_string(),
+                database: db,
+                file: path_string.clone(),
+            })),
+        );
         Ok(())
     }
 
     pub fn close<K: AsRef<str>>(&mut self, key: K) -> Result<(), crate::Error> {
         match self.databases.remove(key.as_ref()) {
             Some(_) => Ok(()),
-            None => Err(crate::Error::UnknownDatabase(key.as_ref().to_string()))
+            None => Err(crate::Error::UnknownDatabase(key.as_ref().to_string())),
         }
     }
 

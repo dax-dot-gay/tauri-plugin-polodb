@@ -7,5 +7,6 @@ pub enum Error {
     Io(String),
     ExistingDatabase(String),
     DatabaseError(String),
-    DaemonError(String)
+    DaemonError(String),
+    SerializationError(String)
 }

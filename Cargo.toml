@@ -17,6 +17,7 @@ uuid = { version = "1.10.0", features = ["v4", "fast-rng", "serde"] }
 async-channel = "2.3.1"
 tokio-test = "0.4.4"
 tokio = { version = "1.40.0", features = ["rt"] }
+serde_json = "1.0.127"
 
 [build-dependencies]
 tauri-plugin = { version = "2.0.0-rc.7", features = ["build"] }

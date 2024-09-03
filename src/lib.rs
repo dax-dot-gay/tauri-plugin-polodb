@@ -11,6 +11,7 @@ mod daemon;
 mod error;
 
 pub use error::Error;
+use commands::list_databases;
 
 #[cfg(desktop)]
 use desktop::Polodb;
@@ -29,7 +30,7 @@ impl<R: Runtime, T: Manager<R>> crate::PolodbExt<R> for T {
 /// Initializes the plugin.
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
   Builder::new("polodb")
-    .invoke_handler(tauri::generate_handler![])
+    .invoke_handler(tauri::generate_handler![list_databases])
     .setup(|app, api| {
       #[cfg(desktop)]
       let polodb = desktop::init(app, api).unwrap();
