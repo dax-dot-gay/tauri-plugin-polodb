@@ -295,17 +295,17 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "allow-ping -> Enables the ping command without any pre-configured scope.",
+          "description": "allow-list-databases -> Enables the list-databases command without any pre-configured scope.",
           "type": "string",
           "enum": [
-            "allow-ping"
+            "allow-list-databases"
           ]
         },
         {
-          "description": "deny-ping -> Denies the ping command without any pre-configured scope.",
+          "description": "deny-list-databases -> Denies the list-databases command without any pre-configured scope.",
           "type": "string",
           "enum": [
-            "deny-ping"
+            "deny-list-databases"
           ]
         },
         {
@@ -313,6 +313,20 @@
           "type": "string",
           "enum": [
             "default"
+          ]
+        },
+        {
+          "description": "allow-list-databases -> Enables the list_databases command.",
+          "type": "string",
+          "enum": [
+            "allow-list-databases"
+          ]
+        },
+        {
+          "description": "deny-list-databases -> Denies the list_databases command.",
+          "type": "string",
+          "enum": [
+            "deny-list-databases"
           ]
         }
       ]

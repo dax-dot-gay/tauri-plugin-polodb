@@ -2,7 +2,7 @@
 
 Default permissions for the plugin
 
-- `allow-ping`
+- `allow-list-databases`
 
 ## Permission Table 
 
@@ -16,12 +16,12 @@ Default permissions for the plugin
 <tr>
 <td>
 
-`polodb:allow-ping`
+`polodb:allow-list-databases`
 
 </td>
 <td>
 
-Enables the ping command without any pre-configured scope.
+Enables the list-databases command without any pre-configured scope.
 
 </td>
 </tr>
@@ -29,12 +29,38 @@ Enables the ping command without any pre-configured scope.
 <tr>
 <td>
 
-`polodb:deny-ping`
+`polodb:deny-list-databases`
 
 </td>
 <td>
 
-Denies the ping command without any pre-configured scope.
+Denies the list-databases command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`polodb:allow-list-databases`
+
+</td>
+<td>
+
+Enables the list_databases command.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`polodb:deny-list-databases`
+
+</td>
+<td>
+
+Denies the list_databases command.
 
 </td>
 </tr>
