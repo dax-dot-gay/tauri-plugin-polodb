@@ -108,6 +108,7 @@ pub mod messages {
             collection: String,
             query: Document,
             count: CountSelect,
+            sort: Option<Document>,
         },
         All {
             database: String,
@@ -167,8 +168,63 @@ pub mod messages {
                         } => {
                             msg.respond(daemon.get_collection(database, collection).and_then(|c| {
                                 c.insert_many(value)
-                                    .and_then(|r| Ok(r.inserted_ids.keys().map(|i| i.clone()).collect::<Vec<usize>>()))
+                                    .and_then(|r| {
+                                        Ok(r.inserted_ids
+                                            .keys()
+                                            .map(|i| i.clone())
+                                            .collect::<Vec<usize>>())
+                                    })
                                     .or_else(|e| Err(crate::Error::InsertError(e.to_string())))
+                            }))
+                        }
+                        PoloCommand::Find {
+                            database,
+                            collection,
+                            query,
+                            count,
+                            sort,
+                        } => {
+                            msg.respond(daemon.get_collection(database, collection).and_then(|c| {
+                                match count {
+                                    CountSelect::Many => match sort {
+                                        Some(sorting) => c
+                                            .find(query)
+                                            .sort(sorting)
+                                            .run()
+                                            .and_then(|s| {
+                                                Ok(s.filter_map(|d| match d {
+                                                    Ok(v) => Some(v),
+                                                    Err(_) => None,
+                                                })
+                                                .collect())
+                                            })
+                                            .or(Err(crate::Error::DatabaseError(
+                                                "Result collection failed".to_string(),
+                                            ))),
+                                        None => c
+                                            .find(query)
+                                            .run()
+                                            .and_then(|s| {
+                                                Ok(s.filter_map(|d| match d {
+                                                    Ok(v) => Some(v),
+                                                    Err(_) => None,
+                                                })
+                                                .collect())
+                                            })
+                                            .or(Err(crate::Error::DatabaseError(
+                                                "Result collection failed".to_string(),
+                                            ))),
+                                    },
+                                    CountSelect::One => c
+                                        .find_one(query)
+                                        .and_then(|v| match v {
+                                            Some(d) => Ok(vec![d]),
+                                            None => Err(polodb_core::Error::UnexpectedPageType),
+                                        })
+                                        .or(Err(crate::Error::DatabaseError(
+                                            "Failed to find document".to_string(),
+                                        ))),
+                                }
                             }))
                         }
                         _ => msg.respond::<()>(Err(crate::Error::DaemonError(
