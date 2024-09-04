@@ -8,5 +8,6 @@ pub enum Error {
     ExistingDatabase(String),
     DatabaseError(String),
     DaemonError(String),
-    SerializationError(String)
+    SerializationError(String),
+    InsertError(String)
 }

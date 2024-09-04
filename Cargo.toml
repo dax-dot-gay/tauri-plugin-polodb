@@ -10,6 +10,7 @@ links = "tauri-plugin-polodb"
 
 [dependencies]
 tauri = { version = "2.0.0-rc.8" }
+tauri-plugin-fs = "2.0.0-rc"
 serde = "1.0"
 thiserror = "1.0"
 polodb_core = "5.1.1"

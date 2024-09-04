@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-list-databases"
+description = "Enables the list_databases command without any pre-configured scope."
+commands.allow = ["list_databases"]
+
+[[permission]]
+identifier = "deny-list-databases"
+description = "Denies the list_databases command without any pre-configured scope."
+commands.deny = ["list_databases"]

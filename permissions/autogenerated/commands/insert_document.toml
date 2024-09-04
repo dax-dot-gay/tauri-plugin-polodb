@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-insert-document"
+description = "Enables the insert_document command without any pre-configured scope."
+commands.allow = ["insert_document"]
+
+[[permission]]
+identifier = "deny-insert-document"
+description = "Denies the insert_document command without any pre-configured scope."
+commands.deny = ["insert_document"]

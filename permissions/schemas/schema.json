@@ -295,42 +295,56 @@
       "type": "string",
       "oneOf": [
         {
-          "description": "allow-close-database -> Enables the close-database command without any pre-configured scope.",
+          "description": "allow-close-database -> Enables the close_database command without any pre-configured scope.",
           "type": "string",
           "enum": [
             "allow-close-database"
           ]
         },
         {
-          "description": "deny-close-database -> Denies the close-database command without any pre-configured scope.",
+          "description": "deny-close-database -> Denies the close_database command without any pre-configured scope.",
           "type": "string",
           "enum": [
             "deny-close-database"
           ]
         },
         {
-          "description": "allow-list-databases -> Enables the list-databases command without any pre-configured scope.",
+          "description": "allow-insert-document -> Enables the insert_document command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-insert-document"
+          ]
+        },
+        {
+          "description": "deny-insert-document -> Denies the insert_document command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-insert-document"
+          ]
+        },
+        {
+          "description": "allow-list-databases -> Enables the list_databases command without any pre-configured scope.",
           "type": "string",
           "enum": [
             "allow-list-databases"
           ]
         },
         {
-          "description": "deny-list-databases -> Denies the list-databases command without any pre-configured scope.",
+          "description": "deny-list-databases -> Denies the list_databases command without any pre-configured scope.",
           "type": "string",
           "enum": [
             "deny-list-databases"
           ]
         },
         {
-          "description": "allow-open-database -> Enables the open-database command without any pre-configured scope.",
+          "description": "allow-open-database -> Enables the open_database command without any pre-configured scope.",
           "type": "string",
           "enum": [
             "allow-open-database"
           ]
         },
         {
-          "description": "deny-open-database -> Denies the open-database command without any pre-configured scope.",
+          "description": "deny-open-database -> Denies the open_database command without any pre-configured scope.",
           "type": "string",
           "enum": [
             "deny-open-database"
@@ -341,20 +355,6 @@
           "type": "string",
           "enum": [
             "default"
-          ]
-        },
-        {
-          "description": "allow-list-databases -> Enables the list_databases command.",
-          "type": "string",
-          "enum": [
-            "allow-list-databases"
-          ]
-        },
-        {
-          "description": "deny-list-databases -> Denies the list_databases command.",
-          "type": "string",
-          "enum": [
-            "deny-list-databases"
           ]
         }
       ]

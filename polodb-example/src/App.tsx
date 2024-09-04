@@ -12,6 +12,23 @@ function App() {
     setGreetMsg(await invoke("greet", { name }));
   }
 
+  async function run_test() {
+    console.log(await invoke("plugin:polodb|list_databases"));
+    console.log(
+      await invoke("plugin:polodb|open_database", {
+        key: "test",
+        path: "/home/itec/test",
+      })
+    );
+    console.log(
+      await invoke("plugin:polodb|insert_document", {
+        database: "test",
+        collection: "test",
+        documents: [{ test: "beans" }],
+      })
+    );
+  }
+
   return (
     <div className="container">
       <h1>Welcome to Tauri!</h1>
@@ -47,11 +64,7 @@ function App() {
 
       <p>{greetMsg}</p>
 
-      <button
-        onClick={() => invoke("plugin:polodb|list_databases").then(console.log)}
-      >
-        TEST
-      </button>
+      <button onClick={() => run_test()}>TEST</button>
     </div>
   );
 }

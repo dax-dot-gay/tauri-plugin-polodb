@@ -4,7 +4,7 @@ use std::{
     sync::{Arc, Mutex, MutexGuard},
 };
 
-use polodb_core::{Collection, Database};
+use polodb_core::{bson::Document, Collection, Database};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -63,6 +63,7 @@ pub mod messages {
     };
 
     use async_channel::{unbounded, Receiver, Sender};
+    use polodb_core::{bson::Document, CollectionT};
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
     use serde_json::Value;
     use uuid::Uuid;
@@ -70,11 +71,48 @@ pub mod messages {
     use super::PoloDaemon;
 
     #[derive(Serialize, Deserialize, Clone, Debug)]
+    pub enum CountSelect {
+        One,
+        Many,
+    }
+
+    #[derive(Serialize, Deserialize, Clone, Debug)]
     pub enum PoloCommand {
         Kill,
-        OpenDatabase { key: String, path: String },
+        OpenDatabase {
+            key: String,
+            path: String,
+        },
         CloseDatabase(String),
         ListDatabases,
+        Insert {
+            database: String,
+            collection: String,
+            value: Vec<Document>,
+        },
+        Delete {
+            database: String,
+            collection: String,
+            query: Document,
+            count: CountSelect,
+        },
+        Update {
+            database: String,
+            collection: String,
+            query: Document,
+            update: Document,
+            count: CountSelect,
+        },
+        Find {
+            database: String,
+            collection: String,
+            query: Document,
+            count: CountSelect,
+        },
+        All {
+            database: String,
+            collection: String,
+        },
     }
 
     #[derive(Clone, Debug)]
@@ -117,13 +155,22 @@ pub mod messages {
                                 Err(e) => Err(e),
                             })
                         }
-                        PoloCommand::CloseDatabase(key) => {
-                            msg.respond(match daemon.close(key) {
-                                Ok(_) => Ok("Database closed.".to_string()),
-                                Err(e) => Err(e),
-                            })
-                        }
+                        PoloCommand::CloseDatabase(key) => msg.respond(match daemon.close(key) {
+                            Ok(_) => Ok("Database closed.".to_string()),
+                            Err(e) => Err(e),
+                        }),
                         PoloCommand::ListDatabases => msg.respond(Ok(daemon.list().clone())),
+                        PoloCommand::Insert {
+                            database,
+                            collection,
+                            value,
+                        } => {
+                            msg.respond(daemon.get_collection(database, collection).and_then(|c| {
+                                c.insert_many(value)
+                                    .and_then(|r| Ok(r.inserted_ids.keys().map(|i| i.clone()).collect::<Vec<usize>>()))
+                                    .or_else(|e| Err(crate::Error::InsertError(e.to_string())))
+                            }))
+                        }
                         _ => msg.respond::<()>(Err(crate::Error::DaemonError(
                             "Unknown command".to_string(),
                         ))),
@@ -141,7 +188,10 @@ pub mod messages {
             }
         }
 
-        pub async fn call<T: Serialize + DeserializeOwned>(&self, command: PoloCommand) -> Result<T, crate::Error> {
+        pub async fn call<T: Serialize + DeserializeOwned>(
+            &self,
+            command: PoloCommand,
+        ) -> Result<T, crate::Error> {
             let (tx, rx) = unbounded::<Result<Value, crate::Error>>();
             let id = Uuid::new_v4();
             let message = PoloMessage {
@@ -157,8 +207,12 @@ pub mod messages {
                 )))?;
             match rx.recv().await {
                 Ok(result) => match result {
-                    Ok(v) => serde_json::from_value::<T>(v).or(Err(crate::Error::SerializationError("Failed to deserialize reponse value".to_string()))),
-                    Err(e) => Err(e)
+                    Ok(v) => {
+                        serde_json::from_value::<T>(v).or(Err(crate::Error::SerializationError(
+                            "Failed to deserialize reponse value".to_string(),
+                        )))
+                    }
+                    Err(e) => Err(e),
                 },
                 Err(_) => Err(crate::Error::DaemonError(
                     "Failed to recv daemon response".to_string(),
@@ -251,5 +305,19 @@ impl PoloDaemon {
 
     pub fn list(&self) -> Vec<String> {
         self.databases.keys().map(|s| s.clone()).collect()
+    }
+
+    pub fn get_collection(
+        &self,
+        database: String,
+        collection: String,
+    ) -> Result<Collection<Document>, crate::Error> {
+        let db = match self.databases.get(&database) {
+            Some(locked) => locked.lock().or(Err(crate::Error::Sync(
+                "Failed to acquire DB lock".to_string(),
+            ))),
+            None => Err(crate::Error::UnknownDatabase("Invalid DB key".to_string())),
+        }?;
+        Ok(db.collection::<Document, String>(collection))
     }
 }
