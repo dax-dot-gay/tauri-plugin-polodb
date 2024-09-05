@@ -102,7 +102,7 @@ pub mod messages {
             query: Document,
             update: Document,
             count: CountSelect,
-            upsert: bool
+            upsert: bool,
         },
         Find {
             database: String,
@@ -195,9 +195,12 @@ pub mod messages {
                                                 })
                                                 .collect())
                                             })
-                                            .or(Err(crate::Error::DatabaseError(
-                                                "Result collection failed".to_string(),
-                                            ))),
+                                            .or_else(|e| {
+                                                Err(crate::Error::DatabaseError(format!(
+                                                    "Operation failed: {:?}",
+                                                    e
+                                                )))
+                                            }),
                                         None => c
                                             .find(query)
                                             .run()
@@ -208,9 +211,12 @@ pub mod messages {
                                                 })
                                                 .collect())
                                             })
-                                            .or(Err(crate::Error::DatabaseError(
-                                                "Result collection failed".to_string(),
-                                            ))),
+                                            .or_else(|e| {
+                                                Err(crate::Error::DatabaseError(format!(
+                                                    "Operation failed: {:?}",
+                                                    e
+                                                )))
+                                            }),
                                     },
                                     CountSelect::One => c
                                         .find_one(query)
@@ -218,9 +224,12 @@ pub mod messages {
                                             Some(d) => Ok(vec![d]),
                                             None => Err(polodb_core::Error::UnexpectedPageType),
                                         })
-                                        .or(Err(crate::Error::DatabaseError(
-                                            "Failed to find document".to_string(),
-                                        ))),
+                                        .or_else(|e| {
+                                            Err(crate::Error::DatabaseError(format!(
+                                                "Operation failed: {:?}",
+                                                e
+                                            )))
+                                        }),
                                 }
                             }))
                         }
@@ -234,15 +243,21 @@ pub mod messages {
                                 match count {
                                     CountSelect::Many => coll
                                         .delete_many(query)
-                                        .or(Err(crate::Error::DatabaseError(
-                                            "Failed to delete specified documents".to_string(),
-                                        )))
+                                        .or_else(|e| {
+                                            Err(crate::Error::DatabaseError(format!(
+                                                "Operation failed: {:?}",
+                                                e
+                                            )))
+                                        })
                                         .and_then(|r| Ok(r.deleted_count)),
                                     CountSelect::One => coll
                                         .delete_one(query)
-                                        .or(Err(crate::Error::DatabaseError(
-                                            "Failed to delete specified document".to_string(),
-                                        )))
+                                        .or_else(|e| {
+                                            Err(crate::Error::DatabaseError(format!(
+                                                "Operation failed: {:?}",
+                                                e
+                                            )))
+                                        })
                                         .and_then(|r| Ok(r.deleted_count)),
                                 }
                             },
@@ -253,21 +268,39 @@ pub mod messages {
                             query,
                             update,
                             count,
-                            upsert
+                            upsert,
                         } => msg.respond(daemon.get_collection(database, collection).and_then(
                             |coll| {
                                 match count {
                                     CountSelect::Many => coll
-                                        .update_many_with_options(query, update, UpdateOptions {upsert: Some(upsert)})
-                                        .or(Err(crate::Error::DatabaseError(
-                                            "Failed to update specified documents".to_string(),
-                                        )))
+                                        .update_many_with_options(
+                                            query,
+                                            update,
+                                            UpdateOptions {
+                                                upsert: Some(upsert),
+                                            },
+                                        )
+                                        .or_else(|e| {
+                                            Err(crate::Error::DatabaseError(format!(
+                                                "Operation failed: {:?}",
+                                                e
+                                            )))
+                                        })
                                         .and_then(|r| Ok(r.modified_count)),
                                     CountSelect::One => coll
-                                        .update_one_with_options(query, update, UpdateOptions {upsert: Some(upsert)})
-                                        .or(Err(crate::Error::DatabaseError(
-                                            "Failed to update specified document".to_string(),
-                                        )))
+                                        .update_one_with_options(
+                                            query,
+                                            update,
+                                            UpdateOptions {
+                                                upsert: Some(upsert),
+                                            },
+                                        )
+                                        .or_else(|e| {
+                                            Err(crate::Error::DatabaseError(format!(
+                                                "Operation failed: {:?}",
+                                                e
+                                            )))
+                                        })
                                         .and_then(|r| Ok(r.modified_count)),
                                 }
                             },
@@ -376,7 +409,7 @@ impl PoloDaemon {
         path: F,
     ) -> Result<(), crate::Error> {
         if self.databases.contains_key(key.as_ref()) {
-            return Err(crate::Error::ExistingDatabase(key.as_ref().to_string()));
+            return Ok(());
         }
         let path_string = path.as_ref().to_str().unwrap().to_string();
         let db = Database::open_path(path.as_ref()).or_else(|e| {

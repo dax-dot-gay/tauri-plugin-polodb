@@ -1,3 +1,18 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = ["allow-list-databases", "allow-open-database", "allow-close-database", "allow-insert-document"]
+permissions = [
+    "allow-list-databases",
+    "allow-open-database",
+    "allow-close-database",
+    "allow-insert",
+    "allow-insert-one",
+    "allow-find",
+    "allow-find-all",
+    "allow-find-one",
+    "allow-delete",
+    "allow-delete-all",
+    "allow-delete-one",
+    "allow-update",
+    "allow-update-all",
+    "allow-update-one"
+]

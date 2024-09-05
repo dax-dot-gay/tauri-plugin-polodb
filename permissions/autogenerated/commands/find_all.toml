@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-find-all"
+description = "Enables the find_all command without any pre-configured scope."
+commands.allow = ["find_all"]
+
+[[permission]]
+identifier = "deny-find-all"
+description = "Denies the find_all command without any pre-configured scope."
+commands.deny = ["find_all"]

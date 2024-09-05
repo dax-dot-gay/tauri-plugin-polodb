@@ -13,20 +13,66 @@ function App() {
   }
 
   async function run_test() {
-    console.log(await invoke("plugin:polodb|list_databases"));
-    console.log(
-      await invoke("plugin:polodb|open_database", {
-        key: "test",
-        path: "/home/itec/test",
-      })
-    );
-    console.log(
-      await invoke("plugin:polodb|insert_document", {
-        database: "test",
-        collection: "test",
-        documents: [{ test: "beans" }],
-      })
-    );
+    try {
+      console.log(await invoke("plugin:polodb|list_databases"));
+      console.log(
+        await invoke("plugin:polodb|open_database", {
+          key: "test",
+          path: "/home/itec/test",
+        })
+      );
+      console.log(
+        await invoke("plugin:polodb|insert", {
+          database: "test",
+          collection: "test",
+          documents: [{ test: "beans" }],
+        })
+      );
+      console.log(
+        await invoke("plugin:polodb|find_all", {
+          database: "test",
+          collection: "test",
+          sort: null,
+        })
+      );
+      console.log(
+        await invoke("plugin:polodb|update", {
+          database: "test",
+          collection: "test",
+          query: { test: "beans" },
+          update: { $set: { test: "sprouts" } },
+          upsert: false,
+        })
+      );
+      console.log(
+        await invoke("plugin:polodb|find_all", {
+          database: "test",
+          collection: "test",
+          sort: null,
+        })
+      );
+      console.log(
+        await invoke("plugin:polodb|delete_all", {
+          database: "test",
+          collection: "test",
+        })
+      );
+      console.log(
+        await invoke("plugin:polodb|find_all", {
+          database: "test",
+          collection: "test",
+          sort: null,
+        })
+      );
+      console.log(
+        await invoke("plugin:polodb|close_database", {
+          key: "test",
+        })
+      );
+      console.log(await invoke("plugin:polodb|list_databases"));
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   return (

@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-delete-all"
+description = "Enables the delete_all command without any pre-configured scope."
+commands.allow = ["delete_all"]
+
+[[permission]]
+identifier = "deny-delete-all"
+description = "Denies the delete_all command without any pre-configured scope."
+commands.deny = ["delete_all"]

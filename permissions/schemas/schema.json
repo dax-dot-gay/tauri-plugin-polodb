@@ -309,17 +309,115 @@
           ]
         },
         {
-          "description": "allow-insert-document -> Enables the insert_document command without any pre-configured scope.",
+          "description": "allow-delete -> Enables the delete command without any pre-configured scope.",
           "type": "string",
           "enum": [
-            "allow-insert-document"
+            "allow-delete"
           ]
         },
         {
-          "description": "deny-insert-document -> Denies the insert_document command without any pre-configured scope.",
+          "description": "deny-delete -> Denies the delete command without any pre-configured scope.",
           "type": "string",
           "enum": [
-            "deny-insert-document"
+            "deny-delete"
+          ]
+        },
+        {
+          "description": "allow-delete-all -> Enables the delete_all command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-delete-all"
+          ]
+        },
+        {
+          "description": "deny-delete-all -> Denies the delete_all command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-delete-all"
+          ]
+        },
+        {
+          "description": "allow-delete-one -> Enables the delete_one command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-delete-one"
+          ]
+        },
+        {
+          "description": "deny-delete-one -> Denies the delete_one command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-delete-one"
+          ]
+        },
+        {
+          "description": "allow-find -> Enables the find command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-find"
+          ]
+        },
+        {
+          "description": "deny-find -> Denies the find command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-find"
+          ]
+        },
+        {
+          "description": "allow-find-all -> Enables the find_all command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-find-all"
+          ]
+        },
+        {
+          "description": "deny-find-all -> Denies the find_all command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-find-all"
+          ]
+        },
+        {
+          "description": "allow-find-one -> Enables the find_one command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-find-one"
+          ]
+        },
+        {
+          "description": "deny-find-one -> Denies the find_one command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-find-one"
+          ]
+        },
+        {
+          "description": "allow-insert -> Enables the insert command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-insert"
+          ]
+        },
+        {
+          "description": "deny-insert -> Denies the insert command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-insert"
+          ]
+        },
+        {
+          "description": "allow-insert-one -> Enables the insert_one command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-insert-one"
+          ]
+        },
+        {
+          "description": "deny-insert-one -> Denies the insert_one command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-insert-one"
           ]
         },
         {
@@ -348,6 +446,48 @@
           "type": "string",
           "enum": [
             "deny-open-database"
+          ]
+        },
+        {
+          "description": "allow-update -> Enables the update command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-update"
+          ]
+        },
+        {
+          "description": "deny-update -> Denies the update command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-update"
+          ]
+        },
+        {
+          "description": "allow-update-all -> Enables the update_all command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-update-all"
+          ]
+        },
+        {
+          "description": "deny-update-all -> Denies the update_all command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-update-all"
+          ]
+        },
+        {
+          "description": "allow-update-one -> Enables the update_one command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-update-one"
+          ]
+        },
+        {
+          "description": "deny-update-one -> Denies the update_one command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-update-one"
           ]
         },
         {
