@@ -2,11 +2,18 @@
 name = "tauri-plugin-polodb"
 version = "0.1.0"
 authors = [ "Dax Harris" ]
-description = ""
+description = "A Tauri plugin to expose the PoloDB embedded database to applications"
 edition = "2021"
 rust-version = "1.71"
 exclude = ["/examples", "/webview-dist", "/webview-src", "/node_modules"]
 links = "tauri-plugin-polodb"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/dax-dot-gay/tauri-plugin-polodb"
+homepage = "https://github.com/dax-dot-gay/tauri-plugin-polodb"
+keywords = ["tauri", "polodb", "tauri-plugin"]
+categories = ["asynchronous", "gui", "database"]
+
 
 [dependencies]
 tauri = { version = "2.0.0-rc.8" }
