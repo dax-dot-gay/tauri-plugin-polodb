@@ -63,7 +63,7 @@ pub mod messages {
     };
 
     use async_channel::{unbounded, Receiver, Sender};
-    use polodb_core::{bson::Document, CollectionT};
+    use polodb_core::{bson::Document, options::UpdateOptions, CollectionT};
     use serde::{de::DeserializeOwned, Deserialize, Serialize};
     use serde_json::Value;
     use uuid::Uuid;
@@ -102,6 +102,7 @@ pub mod messages {
             query: Document,
             update: Document,
             count: CountSelect,
+            upsert: bool
         },
         Find {
             database: String,
@@ -109,10 +110,6 @@ pub mod messages {
             query: Document,
             count: CountSelect,
             sort: Option<Document>,
-        },
-        All {
-            database: String,
-            collection: String,
         },
     }
 
@@ -227,6 +224,54 @@ pub mod messages {
                                 }
                             }))
                         }
+                        PoloCommand::Delete {
+                            database,
+                            collection,
+                            query,
+                            count,
+                        } => msg.respond(daemon.get_collection(database, collection).and_then(
+                            |coll| {
+                                match count {
+                                    CountSelect::Many => coll
+                                        .delete_many(query)
+                                        .or(Err(crate::Error::DatabaseError(
+                                            "Failed to delete specified documents".to_string(),
+                                        )))
+                                        .and_then(|r| Ok(r.deleted_count)),
+                                    CountSelect::One => coll
+                                        .delete_one(query)
+                                        .or(Err(crate::Error::DatabaseError(
+                                            "Failed to delete specified document".to_string(),
+                                        )))
+                                        .and_then(|r| Ok(r.deleted_count)),
+                                }
+                            },
+                        )),
+                        PoloCommand::Update {
+                            database,
+                            collection,
+                            query,
+                            update,
+                            count,
+                            upsert
+                        } => msg.respond(daemon.get_collection(database, collection).and_then(
+                            |coll| {
+                                match count {
+                                    CountSelect::Many => coll
+                                        .update_many_with_options(query, update, UpdateOptions {upsert: Some(upsert)})
+                                        .or(Err(crate::Error::DatabaseError(
+                                            "Failed to update specified documents".to_string(),
+                                        )))
+                                        .and_then(|r| Ok(r.modified_count)),
+                                    CountSelect::One => coll
+                                        .update_one_with_options(query, update, UpdateOptions {upsert: Some(upsert)})
+                                        .or(Err(crate::Error::DatabaseError(
+                                            "Failed to update specified document".to_string(),
+                                        )))
+                                        .and_then(|r| Ok(r.modified_count)),
+                                }
+                            },
+                        )),
                         _ => msg.respond::<()>(Err(crate::Error::DaemonError(
                             "Unknown command".to_string(),
                         ))),
