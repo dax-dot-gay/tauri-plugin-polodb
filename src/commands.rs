@@ -11,6 +11,14 @@ pub async fn list_databases<R: Runtime>(
 }
 
 #[tauri::command]
+pub async fn list_collections<R: Runtime>(
+    app: tauri::AppHandle<R>,
+    database: String
+) -> Result<Vec<String>, crate::Error> {
+    app.polodb().list_collections(database).await
+}
+
+#[tauri::command]
 pub async fn open_database<R: Runtime>(
     app: tauri::AppHandle<R>,
     key: String,

@@ -421,6 +421,20 @@
           ]
         },
         {
+          "description": "allow-list-collections -> Enables the list_collections command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "allow-list-collections"
+          ]
+        },
+        {
+          "description": "deny-list-collections -> Denies the list_collections command without any pre-configured scope.",
+          "type": "string",
+          "enum": [
+            "deny-list-collections"
+          ]
+        },
+        {
           "description": "allow-list-databases -> Enables the list_databases command without any pre-configured scope.",
           "type": "string",
           "enum": [

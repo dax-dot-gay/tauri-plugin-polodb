@@ -14,5 +14,6 @@ permissions = [
     "allow-delete-one",
     "allow-update",
     "allow-update-all",
-    "allow-update-one"
+    "allow-update-one",
+    "allow-list-collections"
 ]

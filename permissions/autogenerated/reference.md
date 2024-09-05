@@ -16,6 +16,7 @@ Default permissions for the plugin
 - `allow-update`
 - `allow-update-all`
 - `allow-update-one`
+- `allow-list-collections`
 
 ## Permission Table 
 
@@ -256,6 +257,32 @@ Enables the insert_one command without any pre-configured scope.
 <td>
 
 Denies the insert_one command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`polodb:allow-list-collections`
+
+</td>
+<td>
+
+Enables the list_collections command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`polodb:deny-list-collections`
+
+</td>
+<td>
+
+Denies the list_collections command without any pre-configured scope.
 
 </td>
 </tr>

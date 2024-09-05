@@ -53,6 +53,17 @@ impl<R: Runtime> Polodb<R> {
             .await
     }
 
+    pub async fn list_collections<T: AsRef<str>>(
+        &self,
+        database: T,
+    ) -> Result<Vec<String>, crate::Error> {
+        self.api
+            .call::<Vec<String>>(PoloCommand::ListCollections {
+                database: database.as_ref().to_string(),
+            })
+            .await
+    }
+
     pub async fn insert<Doc: Serialize + DeserializeOwned, Db: AsRef<str>, Coll: AsRef<str>>(
         &self,
         database: Db,
@@ -236,7 +247,7 @@ impl<R: Runtime> Polodb<R> {
         collection: Coll,
         query: Query,
         update: Update,
-        upsert: bool
+        upsert: bool,
     ) -> Result<u64, crate::Error> {
         self.api
             .call::<u64>(PoloCommand::Update {
@@ -261,7 +272,7 @@ impl<R: Runtime> Polodb<R> {
         collection: Coll,
         query: Query,
         update: Update,
-        upsert: bool
+        upsert: bool,
     ) -> Result<u64, crate::Error> {
         self.api
             .call::<u64>(PoloCommand::Update {
@@ -284,7 +295,7 @@ impl<R: Runtime> Polodb<R> {
         database: Db,
         collection: Coll,
         update: Update,
-        upsert: bool
+        upsert: bool,
     ) -> Result<u64, crate::Error> {
         self.api
             .call::<u64>(PoloCommand::Update {

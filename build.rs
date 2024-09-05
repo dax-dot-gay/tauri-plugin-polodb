@@ -13,6 +13,7 @@ const COMMANDS: &[&str] = &[
     "update",
     "update_all",
     "update_one",
+    "list_collections"
 ];
 
 fn main() {

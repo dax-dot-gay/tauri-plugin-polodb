@@ -85,6 +85,9 @@ pub mod messages {
         },
         CloseDatabase(String),
         ListDatabases,
+        ListCollections {
+            database: String,
+        },
         Insert {
             database: String,
             collection: String,
@@ -158,6 +161,9 @@ pub mod messages {
                             Err(e) => Err(e),
                         }),
                         PoloCommand::ListDatabases => msg.respond(Ok(daemon.list().clone())),
+                        PoloCommand::ListCollections { database } => {
+                            msg.respond(daemon.get_database_collections(database))
+                        }
                         PoloCommand::Insert {
                             database,
                             collection,
@@ -453,5 +459,17 @@ impl PoloDaemon {
             None => Err(crate::Error::UnknownDatabase("Invalid DB key".to_string())),
         }?;
         Ok(db.collection::<Document, String>(collection))
+    }
+
+    pub fn get_database_collections(&self, database: String) -> Result<Vec<String>, crate::Error> {
+        match self.databases.get(&database) {
+            Some(locked) => locked
+                .lock()
+                .or(Err(crate::Error::Sync(
+                    "Failed to acquire DB lock".to_string(),
+                )))
+                .and_then(|d| d.collections()),
+            None => Err(crate::Error::UnknownDatabase("Invalid DB key".to_string())),
+        }
     }
 }

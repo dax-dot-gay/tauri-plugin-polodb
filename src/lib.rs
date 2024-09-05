@@ -12,7 +12,7 @@ mod error;
 
 use commands::{
     close_database, delete, delete_all, delete_one, find, find_all, find_one, insert, insert_one,
-    list_databases, open_database, update, update_all, update_one,
+    list_databases, open_database, update, update_all, update_one, list_collections
 };
 pub use error::Error;
 
@@ -47,7 +47,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             delete_one,
             update,
             update_all,
-            update_one
+            update_one,
+            list_collections
         ])
         .setup(|app, api| {
             #[cfg(desktop)]

@@ -33,6 +33,12 @@ export async function list_databases(): Promise<Result<string[]>> {
     return await exec<string[]>("list_databases");
 }
 
+export async function list_collections(
+    database: string
+): Promise<Result<string[]>> {
+    return await exec<string[]>("list_collections", { database });
+}
+
 export async function open_database(
     key: string,
     path: string
