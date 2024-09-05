@@ -1,9 +1,36 @@
-import { invoke } from '@tauri-apps/api/core'
+import {
+    list_databases,
+    open_database,
+    close_database,
+    insert,
+    insert_one,
+    find_all,
+    find_many,
+    find_one,
+    delete_all,
+    delete_many,
+    delete_one,
+    update_all,
+    update_many,
+    update_one,
+} from "./commands";
+import { Result } from "./types";
 
-export async function ping(value: string): Promise<string | null> {
-  return await invoke<{value?: string}>('plugin:polodb|ping', {
-    payload: {
-      value,
-    },
-  }).then((r) => (r.value ? r.value : null));
-}
+export {
+    list_databases,
+    open_database,
+    close_database,
+    insert,
+    insert_one,
+    find_all,
+    find_many,
+    find_one,
+    delete_all,
+    delete_many,
+    delete_one,
+    update_all,
+    update_many,
+    update_one,
+};
+
+export type { Result };
