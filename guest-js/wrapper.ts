@@ -79,6 +79,11 @@ export class Database {
             return false;
         }
     }
+
+    public collection<T extends object = any>(name: string): Collection<T> {
+        this.check();
+        return new Collection<T>(this, name);
+    }
 }
 
 export class Collection<T extends object = any> {
