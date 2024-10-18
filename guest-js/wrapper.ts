@@ -132,7 +132,7 @@ export class Collection<T extends object = any> {
     ): Promise<Document<T> | null> {
         this.check();
         const result = await find_one(this.database, this.name, query);
-        return result.success ? this.makeDocuments<T>(result.data)[0] : null;
+        return result.success ? this.makeDocuments<T>(...result.data)[0] : null;
     }
 
     public async all(sort?: any): Promise<Document<T>[]> {
